@@ -1,18 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Jan 14 11:49:48 2020
-
-@author: libgrind
+Exporting Sirsi XML report to Excel
 """
+from bs4 import BeautifulSoup
 import xlsxwriter
 from datetime import datetime  # for date/timestamp
 import os # for os.listdir()
 
-# Create a workbook and add a worksheet.
-workbook = xlsxwriter.Workbook('SirsiReport.xlsx')
-worksheet = workbook.add_worksheet()
 
+'''
 # Some data we want to write to the worksheet.
 expenses = (
     ['Rent', 1000],
@@ -36,7 +33,7 @@ worksheet.write(row, 0, 'Total')
 worksheet.write(row, 1, '=SUM(B1:B4)')
 
 workbook.close()
-
+'''
 
 
 
@@ -97,11 +94,15 @@ def get_filelist():
 def convert_xml_to_word(xml_file):
     # Initialize a new Word doc
     doc = Document()
+
     # Grab the source filename minus '.xml' This will be used in the title of the .docx
-    docx_title = xml_file.replace('.xml', '') + '_'
-    docx_heading = "Report for " + xml_file
-    doc.add_heading(docx_heading, level=1)
-    date_paragraph = doc.add_paragraph('')
+    file_title = xml_file.replace('.xml', '') + '_.xlsx'
+    
+    # Create a workbook and add a worksheet.
+    workbook = xlsxwriter.Workbook(file_title)
+    worksheet = workbook.add_worksheet()
+
+    
 
     #doc.add_heading(str(datestamp), level=3)
     print("\nConverting", xml_file)
@@ -162,11 +163,22 @@ def convert_xml_to_word(xml_file):
                     num  = element.get_text() + ' | '
                     isbn += num
             
-            # Add bibliographic details to Word file
-            doc.add_heading(title, level=2)
-            doc.add_paragraph(barcode + "\t" + campus + " " + call_no + "\n" + isbn).paragraph_format.left_indent = Inches(0.25)
-            doc.add_paragraph(desc).paragraph_format.left_indent = Inches(0.25)
-            doc.add_paragraph("Total charges (checkout + renewals): " + total_charges + "\tDate of last use: " + date_last_use ).paragraph_format.left_indent = Inches(0.25)
+            # Add bibliographic details to Excel file
+            '''
+            #Fields to add
+            title
+            barcode
+            campus
+            call_no
+            isbn
+            desc
+            checkout
+            renewals
+            total_charges
+            date_last_use
+            '''
+            
+            
             
             # Collect some basic data for item stats 
             item_stats = []
@@ -177,6 +189,8 @@ def convert_xml_to_word(xml_file):
             
             count += 1
         
+        '''
+
         # Display some stats for the user to see while program is running
         print(str(count), "Total items\t", get_circ_stats(stats_list), "Total checkouts")
         
@@ -190,9 +204,8 @@ def convert_xml_to_word(xml_file):
         # Add table at the end of the report that displays top 10 items that circulated
         get_top_ten(stats_list, doc)
         
-        # Add the docx_title to the file extenstion
-        doc_name = docx_title + get_file_extension()
-        doc.save(directory_path + '/' + doc_name)
+'''
+        worksheet.close()
         
         print("Done!")
 

@@ -203,17 +203,15 @@ def convert_xml_to_word(xml_file):
 
     # Iterate over the data and write it out row by row.
         for item in item_list:
-            for detail in item:
-                worksheet.write(row, col, item[0])
-                worksheet.write(row, col + 1, item[1])
-                worksheet.write(row, col + 1, item[2])
-                worksheet.write(row, col + 1, item[3])
-                worksheet.write(row, col + 1, item[4])
-                
-                
-                
-            
-                row += 1            
+            worksheet.write(row, col, item[0])
+            worksheet.write(row, col + 1, item[1])
+            worksheet.write(row, col + 2, item[2])
+            worksheet.write(row, col + 3, item[3])
+            worksheet.write(row, col + 4, item[4])
+            worksheet.write(row, col + 5, item[5])
+            worksheet.write(row, col + 6, item[6])
+            worksheet.write(row, col + 7, item[7])
+            row += 1            
                 
         workbook.close() 
 

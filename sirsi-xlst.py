@@ -112,7 +112,7 @@ def convert_xml_to_word(xml_file):
         stats_list = []
         
         # a list to hold bib details
-        item_details = []
+        item_list = []
         
         soup  = BeautifulSoup(booklist, 'lxml-xml')
         marc = soup.find_all('catalog')
@@ -129,17 +129,17 @@ def convert_xml_to_word(xml_file):
             else: 
                 year = "Check year" # A few titles like yearbooks don't have a year!
                 
-            barcode = item.itemID.get_text()
-   
+            barcode = item.itemID.get_text()   
             total_charges = item.totalCharges.get_text()
             date_last_use = item.dateLastUsed.get_text()
             call_no = item.callNumber.get_text()
-
+            isbn = ''
             # This find_all returns a list of all the marcEntry elements
             tag = item.find_all('marcEntry')
 
-            isbn = ''
-    
+            
+            # list to hold details of one item
+            item_details = []
             for element in tag: 
                 # Title
                 # if 245 in element[tag] 
@@ -165,35 +165,10 @@ def convert_xml_to_word(xml_file):
                     num  = element.get_text() + ' | '
                     isbn += num
             
-            # Add bibliographic details to Excel file
-            '''
-            #Fields to add
-            title
-            barcode
-            campus
-            call_no
-            isbn
-            desc
-            checkout
-            renewals
-            total_charges
-            date_last_use
-            '''
+            # Add bibliographic details to Excel file 
             item_details.extend([title,barcode,campus,call_no,isbn,desc,total_charges,date_last_use])
             
-            
-            # Start from the first cell. Rows and columns are zero indexed.  
-            row = 0
-            col = 0
-            '''
-
-            # Iterate over the data and write it out row by row.
-            for item in (item_details):
-                worksheet.write(row, col, item)
-                row += 1            
-      '''          
-                      
-
+            item_list.append(item_details)
             
             # Collect some basic data for item stats 
             item_stats = []
@@ -219,12 +194,29 @@ def convert_xml_to_word(xml_file):
         # Add table at the end of the report that displays top 10 items that circulated
         get_top_ten(stats_list, doc)
         
-'''
-        
-        workbook.close()
+'''          
         
         print("Done!")
-        print(item_details)
+     # Start from the first cell. Rows and columns are zero indexed.  
+        row = 0
+        col = 0            
+
+    # Iterate over the data and write it out row by row.
+        for item in (item_list[row]):
+            worksheet.write(row, col, item[0])
+            worksheet.write(row, col + 1, item[1])
+            worksheet.write(row, col + 1, item[2])
+            worksheet.write(row, col + 1, item[3])
+            worksheet.write(row, col + 1, item[4])
+            worksheet.write(row, col + 1, item[5])
+            
+            row += 1            
+                
+        workbook.close() 
+
+        
+        
+        
 # Returns a total # of checkouts for all titles within an XML file
 # Accepts a list of items as a parameter; returns an int of total charges (checkouts + renewals)
 def get_circ_stats(item_list):

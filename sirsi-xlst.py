@@ -118,7 +118,7 @@ def convert_xml_to_word(xml_file):
         marc = soup.find_all('catalog')
         tag = soup.marcEntry
         # should probably handle an xml file that isn't from Sirisi or one that isn't formatted properly
-        count = 1
+        
         for item in marc:
             
             # find_all() returns a _list_ of tags and strings–a ResultSet object. 
@@ -146,7 +146,7 @@ def convert_xml_to_word(xml_file):
                 if element['tag'] == '245':
                     title = element.get_text()
                     stats_title = element.get_text()
-                    title = str(count) + ". " + element.get_text() + " (" + year + ")"
+                    title = element.get_text() + " (" + year + ")"
                     
                 # Description
                 if element['tag'] == '260':
@@ -177,7 +177,7 @@ def convert_xml_to_word(xml_file):
             # Save item stats in a list for the top ten list
             stats_list.append(item_stats)
             
-            count += 1
+        
         
         '''
 
@@ -202,15 +202,18 @@ def convert_xml_to_word(xml_file):
         col = 0            
 
     # Iterate over the data and write it out row by row.
-        for item in (item_list[row]):
-            worksheet.write(row, col, item[0])
-            worksheet.write(row, col + 1, item[1])
-            worksheet.write(row, col + 1, item[2])
-            worksheet.write(row, col + 1, item[3])
-            worksheet.write(row, col + 1, item[4])
-            worksheet.write(row, col + 1, item[5])
+        for item in item_list:
+            for detail in item:
+                worksheet.write(row, col, item[0])
+                worksheet.write(row, col + 1, item[1])
+                worksheet.write(row, col + 1, item[2])
+                worksheet.write(row, col + 1, item[3])
+                worksheet.write(row, col + 1, item[4])
+                
+                
+                
             
-            row += 1            
+                row += 1            
                 
         workbook.close() 
 

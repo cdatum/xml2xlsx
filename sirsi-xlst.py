@@ -92,8 +92,7 @@ def get_filelist():
 # Accepts an xml file and produces a Word file. Only prints select
 # fields; not an entire bib or item record
 def convert_xml_to_word(xml_file):
-    # Initialize a new Word doc
-    doc = Document()
+    
 
     # Grab the source filename minus '.xml' This will be used in the title of the .docx
     file_title = xml_file.replace('.xml', '') + '_.xlsx'
@@ -111,6 +110,9 @@ def convert_xml_to_word(xml_file):
         global directory_path
         # a list to hold circ stats
         stats_list = []
+        
+        # a list to hold bib details
+        item_details = []
         
         soup  = BeautifulSoup(booklist, 'lxml-xml')
         marc = soup.find_all('catalog')
@@ -177,8 +179,21 @@ def convert_xml_to_word(xml_file):
             total_charges
             date_last_use
             '''
+            item_details.extend([title,barcode,campus,call_no,isbn,desc,total_charges,date_last_use])
             
             
+            # Start from the first cell. Rows and columns are zero indexed.  
+            row = 0
+            col = 0
+            '''
+
+            # Iterate over the data and write it out row by row.
+            for item in (item_details):
+                worksheet.write(row, col, item)
+                row += 1            
+      '''          
+                      
+
             
             # Collect some basic data for item stats 
             item_stats = []
@@ -205,10 +220,11 @@ def convert_xml_to_word(xml_file):
         get_top_ten(stats_list, doc)
         
 '''
-        worksheet.close()
+        
+        workbook.close()
         
         print("Done!")
-
+        print(item_details)
 # Returns a total # of checkouts for all titles within an XML file
 # Accepts a list of items as a parameter; returns an int of total charges (checkouts + renewals)
 def get_circ_stats(item_list):

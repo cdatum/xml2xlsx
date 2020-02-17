@@ -5,36 +5,7 @@ Exporting Sirsi XML report to Excel
 """
 from bs4 import BeautifulSoup
 import xlsxwriter
-from datetime import datetime  # for date/timestamp
 import os # for os.listdir()
-
-
-'''
-# Some data we want to write to the worksheet.
-expenses = (
-    ['Rent', 1000],
-    ['Gas',   100],
-    ['Food',  300],
-    ['Gym',    50],
-)
-
-# Start from the first cell. Rows and columns are zero indexed.
-row = 0
-col = 0
-
-# Iterate over the data and write it out row by row.
-for item, cost in (expenses):
-    worksheet.write(row, col,     item)
-    worksheet.write(row, col + 1, cost)
-    row += 1
-
-# Write a total using a formula.
-worksheet.write(row, 0, 'Total')
-worksheet.write(row, 1, '=SUM(B1:B4)')
-
-workbook.close()
-'''
-
 
 
 # Holds the directory where xml file(s) will be sourced and docx file(s) will be saved
@@ -46,7 +17,7 @@ def get_catalog_details(tag):
     print("name:", tag.name)
     print("attrs:", tag.attrs)
 
-# Get a list of .xml files in the directory
+# Get a list of .xml files in the directory    
 def get_filelist():
     xml_filenames = []
     # https://docs.python.org/3/library/os.html#os.listdir
@@ -85,25 +56,22 @@ def get_filelist():
 
     # Iterate through each file, process it, and generate a Word doc
     for xml_file in xml_filenames:          
-        convert_xml_to_word(xml_file)    
+        convert_xml_to_xlsx(xml_file)    
     
 
 # This function extracts the bulk of the data from the xml file.
-# Accepts an xml file and produces a Word file. Only prints select
+# Accepts an xml file and produces an Excel file. Only prints select
 # fields; not an entire bib or item record
-def convert_xml_to_word(xml_file):
-    
+def convert_xml_to_xlsx(xml_file):    
 
-    # Grab the source filename minus '.xml' This will be used in the title of the .docx
+    # Grab the source filename minus '.xml' This will be used in the title of the resulting file
     file_title = xml_file.replace('.xml', '') + '_.xlsx'
     
     # Create a workbook and add a worksheet.
     workbook = xlsxwriter.Workbook(file_title)
     worksheet = workbook.add_worksheet()
 
-    
-
-    #doc.add_heading(str(datestamp), level=3)
+        
     print("\nConverting", xml_file)
     
     with open(xml_file, encoding = 'utf-8') as booklist:
@@ -116,8 +84,7 @@ def convert_xml_to_word(xml_file):
         
         soup  = BeautifulSoup(booklist, 'lxml-xml')
         marc = soup.find_all('catalog')
-        tag = soup.marcEntry
-        # should probably handle an xml file that isn't from Sirisi or one that isn't formatted properly
+        tag = soup.marcEntry       
         
         for item in marc:
             
@@ -176,78 +143,56 @@ def convert_xml_to_word(xml_file):
             item_stats.extend(elements)
             # Save item stats in a list for the top ten list
             stats_list.append(item_stats)
-            
         
         
-        '''
-
-        # Display some stats for the user to see while program is running
-        print(str(count), "Total items\t", get_circ_stats(stats_list), "Total checkouts")
-        
-        # Add date and brief summary of items        
-        date_paragraph.insert_paragraph_before("Report created on " + soup.dateCreated.get_text())
-        
-        number_of_items = [str(count), "total items in this report.\t" , str(get_circ_stats(stats_list)), " total checkouts."]
-        subtitle_data = ' '        
-        date_paragraph.insert_paragraph_before(subtitle_data.join(number_of_items))
-        
-        # Add table at the end of the report that displays top 10 items that circulated
-        get_top_ten(stats_list, doc)
-        
-'''          
         
         print("Done!")
-     # Start from the first cell. Rows and columns are zero indexed.  
+        
+
+        
+        # Start from the first cell. Rows and columns are zero indexed.  
         row = 0
         col = 0            
+        
+        # Setup col & cell formatting
+        header_format = workbook.add_format({'bold': True})
+        text_wrap_format = workbook.add_format()
+        text_wrap_format.set_text_wrap()
+        worksheet.set_column('A:A' , 60)  # Width title col
+        worksheet.set_column('B:E' , 20)    # Width cols B-E
+        worksheet.set_column('F:F' , 60)    # Width desc col
+        
+        # Output the results starting with row headers
+        worksheet.write(row, col, 'Title', header_format)
+        worksheet.write(row, 1, 'Barcode', header_format)
+        worksheet.write(row, col + 2, 'Campus', header_format)
+        worksheet.write(row, col + 3, 'Call Number', header_format)
+        worksheet.write(row, col + 4, 'ISBN', header_format)
+        worksheet.write(row, col + 5, 'Description', header_format)
+        worksheet.write(row, col + 6, 'Total Charges', header_format)
+        worksheet.write(row, col + 7, 'Date of Last Use', header_format)
+        
+        row += 1 
 
-    # Iterate over the data and write it out row by row.
+        # Iterate over the data and write it out row by row.
         for item in item_list:
-            worksheet.write(row, col, item[0])
+            worksheet.write(row, col, item[0], text_wrap_format)
             worksheet.write(row, col + 1, item[1])
             worksheet.write(row, col + 2, item[2])
             worksheet.write(row, col + 3, item[3])
-            worksheet.write(row, col + 4, item[4])
-            worksheet.write(row, col + 5, item[5])
+            worksheet.write(row, col + 4, item[4], text_wrap_format)
+            worksheet.write(row, col + 5, item[5], text_wrap_format)
             worksheet.write(row, col + 6, item[6])
             worksheet.write(row, col + 7, item[7])
             row += 1            
                 
         workbook.close() 
-
-        
-        
-        
-# Returns a total # of checkouts for all titles within an XML file
-# Accepts a list of items as a parameter; returns an int of total charges (checkouts + renewals)
-def get_circ_stats(item_list):
-    sort_list = []
-    sort_list = sorted(item_list, key=lambda record: int(record[2]), reverse=True)
-    # from https://docs.python.org/3/howto/sorting.html#sortinghowto
-
-    charges = 0
-    for item in sort_list:
-        charges += int(item[2])
-
-    return charges
-
-
     
-    
-# Get a timestap and use it to create a unique filename    
-def get_file_extension():
-    date_extension = datetime.today()
-    date_extension = str(date_extension).replace('-','_')
-    date_extension = date_extension.replace(':', '')
-    date_extension = date_extension.replace(' ', '-')
-    date_extension = date_extension.replace('.', '')
-    date_extension = date_extension + '.docx'
-    return date_extension
 
 
 def say_goodbye():
     if no_xml == False:
-        print("\nAll done! \n\nFind the Word file(s)in the following directory:\n", directory_path )
+        print("\nAll done! \n\nFind the file(s)in the following directory:\n", directory_path )
     else:
         print("\nLet's try again" )
         get_filelist()
